@@ -25,7 +25,14 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
         return true;
     }
     //1.Extract the token from the request header
-    String token = request.getHeader((jwtProperties.getTokenName()));
+    // The design doc specifies "Authorization: Bearer <jwt>"; the original front end
+    // sends a bare "token" header - accept both so either client works.
+    String token = request.getHeader("Authorization");
+    if (token == null) {
+        token = request.getHeader(jwtProperties.getTokenName());
+    } else if (token.startsWith("Bearer ")) {
+        token = token.substring("Bearer ".length());
+    }
     log.info("Token from header:{}",token != null? "found":"null");
     if(token == null || token.trim().isEmpty()){
         log.error("No token");
