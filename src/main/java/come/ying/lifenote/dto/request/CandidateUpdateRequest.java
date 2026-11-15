@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Edit payload for one draft; endpoints 5 (single edit) and 6 (bulk confirm)
+ * Edit payload for one draft; the single-draft edit and the bulk confirm
  * share this class. dueDate may be null here - a date is only mandatory at
- * confirm time, endpoint 6 enforces that.
+ * confirm time, and the confirm path enforces that.
  */
 @Data
 public class CandidateUpdateRequest {

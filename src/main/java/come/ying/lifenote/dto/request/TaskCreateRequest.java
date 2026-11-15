@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-/** Manual create form (endpoint 11): title and date required, the rest optional. */
+/** Manual create form: title and date required, the rest optional. */
 @Data
 public class TaskCreateRequest {
     @NotBlank(message = "title must not be blank")

@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** Endpoints 10-16: three ways to create a task (quick/form/AI) plus list, edit, status, postpone. */
+/** Three ways to create a task (quick/form/AI) plus list, edit, status and postpone. */
 @Service
 public class TaskService {
 
@@ -51,7 +51,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 10: one-line quick add (local parsing, no AI call)
+    // one-line quick add (local parsing, no AI call)
     // ================================================================
     @Transactional
     public QuickAddResponse quickAdd(UUID userId, QuickAddRequest request) {
@@ -79,7 +79,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 11: manual form create
+    // manual form create
     // ================================================================
     @Transactional
     public TaskResponse create(UUID userId, TaskCreateRequest request) {
@@ -93,7 +93,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 12: list / calendar range
+    // list / calendar range
     // ================================================================
     public List<TaskResponse> list(UUID userId, LocalDate from, LocalDate to, String status) {
         return rawList(userId, from, to, status).stream()
@@ -102,7 +102,7 @@ public class TaskService {
     }
 
     /**
-     * Shared range query: the list endpoint wants DTOs, the ICS export (endpoint 19)
+     * Shared range query: the list view wants DTOs, the .ics export
      * wants entities. Defaults: from = today, to = from (so no params = today);
      * a reversed range is silently swapped (dragging a calendar selection backwards
      * is common); unknown status string = 1203.
@@ -126,7 +126,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 13: detail - the only place source URLs are signed
+    // detail - the only place source URLs are signed
     // ================================================================
     public TaskResponse detail(UUID userId, UUID id) {
         Task task = owned(userId, id);
@@ -136,7 +136,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 14: edit (PATCH, null = leave unchanged)
+    // edit (PATCH, null = leave unchanged)
     // ================================================================
     @Transactional
     public TaskResponse update(UUID userId, UUID id, TaskUpdateRequest request) {
@@ -161,7 +161,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 15: mark done / cancelled / back to todo
+    // mark done / cancelled / back to todo
     // ================================================================
     @Transactional
     public TaskResponse changeStatus(UUID userId, UUID id, String status) {
@@ -174,8 +174,8 @@ public class TaskService {
             throw new BusinessException(1203, "Unknown status: " + status);
         }
         if (st == TaskStatus.POSTPONED) {
-            // POSTPONED only comes from endpoint 16 - setting it by hand would
-            // skip the copy and the log, leaving a state nothing recorded
+            // POSTPONED only comes from the postpone action - setting it by hand
+            // would skip the copy and the log, leaving a state nothing recorded
             throw new BusinessException(1203, "POSTPONED is set by the postpone action only.");
         }
 
@@ -186,7 +186,7 @@ public class TaskService {
     }
 
     // ================================================================
-    // Endpoint 16: postpone - four writes in one transaction:
+    // postpone - four writes in one transaction:
     //   1. old task becomes POSTPONED, staying on its old date as history
     //   2. copy created on the new date
     //   3. source links copied to the new task
@@ -266,8 +266,8 @@ public class TaskService {
 
     /**
      * Build the source list for a detail response, signing a 10-minute URL per
-     * linked document. A source may already be gone (endpoint 9 deletes the
-     * original but keeps the task); findByIdAndUserId misses are skipped -
+     * linked document. A source may already be gone (deleting a source keeps
+     * its tasks but drops the link row); findByIdAndUserId misses are skipped -
      * one fewer source on the page, not an error.
      */
     private List<SourceResponse> sourcesOf(Task task) {

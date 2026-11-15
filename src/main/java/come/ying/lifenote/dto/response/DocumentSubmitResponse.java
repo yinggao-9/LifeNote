@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Result of POST /api/documents and POST /{id}/reextract.
+ * Result of submitting a document or re-extracting one.
  * A failed AI call still returns HTTP 200 with status=FAILED: the upload
  * succeeded, so the front end shows "analysis failed, retry available"
- * (endpoint 8) instead of discarding the whole request.
+ * instead of discarding the whole request.
  */
 @Data
 @Builder

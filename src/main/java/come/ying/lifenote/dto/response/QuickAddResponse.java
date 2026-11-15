@@ -10,7 +10,7 @@ import java.time.LocalTime;
  * status = "OK"         parsed cleanly, the task exists, task holds it.
  * status = "NEED_INPUT" local parsing found no date (or no title); title/dueTime
  *                      carry whatever was recognized so the front end can
- *                      pre-fill a form, then POST /api/tasks (endpoint 11) saves it.
+ *                      pre-fill a form, then the normal create call saves it.
  * NEED_INPUT is not an error: HTTP stays 200 and no exception is thrown.
  */
 @Data

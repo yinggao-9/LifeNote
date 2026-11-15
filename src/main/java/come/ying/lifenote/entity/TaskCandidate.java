@@ -39,7 +39,7 @@ public class TaskCandidate {
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    /** Null when the model found no date; the confirm endpoint rejects such drafts. */
+    /** Null when the model found no date; confirming the drafts rejects such rows. */
     @Column(name = "due_date")
     private LocalDate dueDate;
 

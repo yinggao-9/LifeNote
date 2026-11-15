@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-/** Endpoints 1-9: submit material, review drafts, confirm/cancel, retry, delete. */
+/** Material intake: submit, review drafts, confirm/cancel, retry, delete. */
 @Slf4j
 @RestController
 @RequestMapping("/api/documents")
@@ -29,7 +29,7 @@ public class DocumentController {
         this.documentService = documentService;
     }
 
-    /** Endpoint 1: submit text or a file, extraction runs synchronously. */
+    /** Submit text or a file; extraction runs synchronously. */
     @PostMapping
     public ApiResponse<DocumentSubmitResponse> submit(
             @RequestParam(value = "file", required = false) MultipartFile file,
@@ -40,25 +40,25 @@ public class DocumentController {
         return ApiResponse.success(documentService.submit(userId, file, text));
     }
 
-    /** Endpoint 2: my submission history. */
+    /** My submission history. */
     @GetMapping
     public ApiResponse<List<DocumentResponse>> list() {
         return ApiResponse.success(documentService.list(BaseContext.getCurrentId()));
     }
 
-    /** Endpoint 3: detail, includes a 10-minute temporary source URL plus drafts. */
+    /** Detail view: 10-minute temporary source URL plus the drafts. */
     @GetMapping("/{id}")
     public ApiResponse<DocumentResponse> detail(@PathVariable UUID id) {
         return ApiResponse.success(documentService.detail(BaseContext.getCurrentId(), id));
     }
 
-    /** Endpoint 4: draft list. */
+    /** Draft list. */
     @GetMapping("/{id}/candidates")
     public ApiResponse<List<CandidateResponse>> candidates(@PathVariable UUID id) {
         return ApiResponse.success(documentService.candidates(BaseContext.getCurrentId(), id));
     }
 
-    /** Endpoint 5: edit a single draft. */
+    /** Edit a single draft. */
     @PutMapping("/{id}/candidates/{candidateId}")
     public ApiResponse<CandidateResponse> updateCandidate(
             @PathVariable UUID id,
@@ -68,7 +68,7 @@ public class DocumentController {
                 documentService.updateCandidate(BaseContext.getCurrentId(), id, candidateId, request));
     }
 
-    /** Endpoint 6: bulk confirm, creates the real tasks. */
+    /** Bulk confirm: turn every draft into a real task. */
     @PostMapping("/{id}/confirm")
     public ApiResponse<ConfirmResponse> confirm(
             @PathVariable UUID id,
@@ -77,20 +77,20 @@ public class DocumentController {
                 documentService.confirm(BaseContext.getCurrentId(), id, request));
     }
 
-    /** Endpoint 7: cancel, discards every draft. */
+    /** Cancel: discard every draft, save nothing. */
     @PostMapping("/{id}/cancel")
     public ApiResponse<String> cancel(@PathVariable UUID id) {
         documentService.cancel(BaseContext.getCurrentId(), id);
         return ApiResponse.success("Cancelled, nothing was saved.");
     }
 
-    /** Endpoint 8: retry extraction after an AI failure (same material). */
+    /** Retry extraction after an AI failure (same material). */
     @PostMapping("/{id}/reextract")
     public ApiResponse<DocumentSubmitResponse> reextract(@PathVariable UUID id) {
         return ApiResponse.success(documentService.reextract(BaseContext.getCurrentId(), id));
     }
 
-    /** Endpoint 9: delete the source (S3 object + drafts + audit rows); tasks are kept. */
+    /** Delete the source (S3 object + drafts + audit rows); created tasks are kept. */
     @DeleteMapping("/{id}")
     public ApiResponse<String> delete(@PathVariable UUID id) {
         documentService.delete(BaseContext.getCurrentId(), id);

@@ -25,7 +25,7 @@ public class TaskResponse {
     private UUID postponedFromTaskId;
     private Instant completedAt;
     private Instant createdAt;
-    private List<SourceResponse> sources;   // filled only by the detail endpoint, empty list elsewhere
+    private List<SourceResponse> sources;   // filled only by the detail view, empty list elsewhere
 
     /** Shared by list/board/postpone results; sources stay empty until detail() signs the URLs. */
     public static TaskResponse from(Task t) {

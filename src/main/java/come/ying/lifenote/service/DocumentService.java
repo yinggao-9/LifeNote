@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Endpoints 1-9 in one place. Two deliberate rules:
+ * Document intake and draft confirmation in one place. Two deliberate rules:
  * - no @Transactional around submit(): S3 upload plus the LLM call take
  *   seconds, and a held DB connection during that time starves the pool;
  *   each save below runs in its own short transaction instead;
@@ -66,7 +66,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 1: submit
+    // submit
     // ================================================================
     public DocumentSubmitResponse submit(UUID userId, MultipartFile file, String text) {
         boolean hasFile = file != null && !file.isEmpty();
@@ -225,7 +225,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 2: history list
+    // history list
     // ================================================================
     public List<DocumentResponse> list(UUID userId) {
         return documentRepository.findTop50ByUserIdOrderByCreatedAtDesc(userId).stream()
@@ -234,7 +234,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 3: detail (fresh presigned source URL + drafts)
+    // detail (fresh presigned source URL + drafts)
     // ================================================================
     public DocumentResponse detail(UUID userId, UUID id) {
         Document doc = owned(userId, id);
@@ -252,7 +252,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 4: draft list
+    // draft list
     // ================================================================
     public List<CandidateResponse> candidates(UUID userId, UUID docId) {
         owned(userId, docId);                       // ownership check rides along
@@ -261,7 +261,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 5: edit one draft
+    // edit one draft
     // ================================================================
     @Transactional
     public CandidateResponse updateCandidate(UUID userId, UUID docId, UUID candId,
@@ -285,7 +285,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 6: bulk confirm (one transaction; any bad row rolls back all)
+    // bulk confirm (one transaction; any bad row rolls back all)
     // ================================================================
     @Transactional
     public ConfirmResponse confirm(UUID userId, UUID docId, DocumentConfirmRequest req) {
@@ -357,7 +357,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 7: cancel
+    // cancel
     // ================================================================
     @Transactional
     public void cancel(UUID userId, UUID docId) {
@@ -369,7 +369,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 8: re-extract (another AI call on the same material)
+    // re-extract (another AI call on the same material)
     // ================================================================
     public DocumentSubmitResponse reextract(UUID userId, UUID docId) {
         Document doc = owned(userId, docId);
@@ -397,7 +397,7 @@ public class DocumentService {
     }
 
     // ================================================================
-    // Endpoint 9: delete the source
+    // delete the source
     // ================================================================
     @Transactional
     public void delete(UUID userId, UUID docId) {
