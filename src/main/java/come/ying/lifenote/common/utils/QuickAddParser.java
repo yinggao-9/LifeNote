@@ -163,38 +163,64 @@ public class QuickAddParser {
 
     // ================= strip recognised fragments from the remaining title =================
 
+    /**
+     * Prepositions that glue a date/time fragment to the rest of the phrase
+     * ("milk tomorrow at 10am" leaves a stray "at" behind). The connector is
+     * consumed only together with the fragment it precedes, so a bare
+     * "meet at the clinic" keeps its "at".
+     */
+    private static final String CONNECTOR = "(?:\\b(?:at|by|on|before|until|till)\\s+)?";
+
     private static String removeMatchedTime(String s) {
-        String out = s.replaceAll("(?i)\\d{1,2}:\\d{2}\\s*(am|pm)?", " ");
-        return out.replaceAll("(?i)\\d{1,2}\\s*(am|pm)\\b", " ");
+        String out = s.replaceAll("(?i)" + CONNECTOR + "\\d{1,2}:\\d{2}\\s*(am|pm)?", " ");
+        return out.replaceAll("(?i)" + CONNECTOR + "\\d{1,2}\\s*(am|pm)\\b", " ");
     }
 
     private static String removeMatchedDate(String s) {
-        String out = s.replaceAll("\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}", " ");
-        out = out.replaceAll("\\b\\d{1,2}/\\d{1,2}(?:/\\d{4})?\\b", " ");
-        out = out.replaceAll("(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2}(,?\\s*\\d{4})?", " ");
-        out = out.replaceAll("(?i)\\b(today|tonight|tomorrow|the day after tomorrow)\\b", " ");
+        String out = s.replaceAll(CONNECTOR + "\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}", " ");
+        out = out.replaceAll(CONNECTOR + "\\b\\d{1,2}/\\d{1,2}(?:/\\d{4})?\\b", " ");
+        out = out.replaceAll("(?i)" + CONNECTOR + "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2}(,?\\s*\\d{4})?", " ");
+        out = out.replaceAll("(?i)" + CONNECTOR + "\\b(today|tonight|tomorrow|the day after tomorrow)\\b", " ");
         out = out.replaceAll("(?i)\\bnext\\s+", " ");
-        out = out.replaceAll("(?i)\\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\\b", " ");
+        out = out.replaceAll("(?i)" + CONNECTOR + "\\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\\b", " ");
         return out;
     }
 
     // ================= self-test (run this class's main to check the rules) =================
     public static void main(String[] args) {
-        LocalDate today = LocalDate.of(2026, 11, 14);
-        String[] cases = {
-                "Submit the form by 2026-12-01",
-                "I will pick up my child tomorrow at 3 pm",
-                "Nov 30 meeting with Bob",
-                "buy milk",                       // expect dateFound=false
-                "Wednesday hand in the report",
-                "call the bank at 15:30",
-                "next Monday flight at 9am",
-                "the day after tomorrow dentist"  // must be +2 days, not tomorrow
+        LocalDate today = LocalDate.of(2026, 11, 14);   // a Saturday
+        // {input, expectedTitle, expectedDate, expectedTime}; null date/time = expect none
+        Object[][] cases = {
+                {"Submit the form by 2026-12-01", "Submit the form", "2026-12-01", null},
+                {"I will pick up my child tomorrow at 3 pm", "I will pick up my child", "2026-11-15", "15:00"},
+                {"buy milk tomorrow at 10am", "buy milk", "2026-11-15", "10:00"},
+                {"Nov 30 meeting with Bob", "meeting with Bob", "2026-11-30", null},
+                {"buy milk", "buy milk", null, null},                       // dateFound=false branch
+                {"Wednesday hand in the report", "hand in the report", "2026-11-18", null},
+                {"call the bank at 15:30", "call the bank", null, "15:30"},
+                {"next Monday flight at 9am", "flight", "2026-11-16", "09:00"},
+                {"the day after tomorrow dentist", "dentist", "2026-11-16", null},
+                {"meet at the clinic", "meet at the clinic", null, null}    // "at" must survive without a time
         };
-        for (String c : cases) {
-            Parsed p = parse(c, today);
-            System.out.printf("%-45s -> date=%s time=%s title='%s'%n",
-                    c, p.dueDate(), p.dueTime(), p.title());
+        int failed = 0;
+        for (Object[] c : cases) {
+            Parsed p = parse((String) c[0], today);
+            String expDate = c[2] == null ? null : c[2].toString();
+            String expTime = c[3] == null ? null : c[3].toString();
+            String gotDate = p.dueDate() == null ? null : p.dueDate().toString();
+            String gotTime = p.dueTime() == null ? null : String.format("%02d:%02d", p.dueTime().getHour(), p.dueTime().getMinute());
+            boolean ok = c[1].equals(p.title()) && java.util.Objects.equals(expDate, gotDate)
+                    && java.util.Objects.equals(expTime, gotTime);
+            if (!ok) {
+                failed++;
+                System.out.printf("FAIL %-45s -> title='%s' date=%s time=%s (want title='%s' date=%s time=%s)%n",
+                        c[0], p.title(), gotDate, gotTime, c[1], expDate, expTime);
+            }
         }
+        if (failed > 0) {
+            System.out.println(failed + " of " + cases.length + " cases FAILED");
+            System.exit(1);
+        }
+        System.out.println("all " + cases.length + " quick-add parser cases passed");
     }
 }
