@@ -1,0 +1,18 @@
+# Local build artifacts
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Secrets - never commit these
+local-secrets.yml
+.env
+
+# OS
+.DS_Store
+Thumbs.db

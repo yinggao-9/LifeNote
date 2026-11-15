@@ -1,0 +1,58 @@
+spring:
+  # loads local-secrets.yml (JWT key + AWS keys); the file lives at the project root so it
+  # stays out of git and out of the packaged jar. "optional" keeps startup working without it.
+  config:
+    import: optional:file:local-secrets.yml
+  autoconfigure:
+    # The DeepSeek starter always tries to build its ChatModel, even with no key configured,
+    # which aborts startup. Excluding it lets both AI starters live in the pom while only the
+    # OpenAI one is active. To switch models: remove this exclude and comment out openai below.
+    exclude: org.springframework.ai.model.deepseek.autoconfigure.DeepSeekChatAutoConfiguration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/lifenote
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123456}
+  jpa:
+    hibernate:
+      # schema is owned by Flyway; Hibernate only checks that the mappings match
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    # lets Flyway adopt a database that already contains users/user_settings
+    baseline-on-migrate: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:}
+  ttl: 7200000
+  token-name: token
+
+app:
+  ai:
+    # name recorded in ai_runs.model; keep in sync with the active spring.ai provider
+    model: gpt-4o-mini
+  s3:
+    region: ${AWS_REGION:eu-north-1}
+    access-key: ${AWS_ACCESS_KEY:}
+    secret-key: ${AWS_SECRET_KEY:}
+    bucket: ${AWS_BUCKET:ying-demon-bucket-850610451023-eu-north-1-an}
+
+spring.ai:
+  openai:
+    # placeholder lets the ChatClient bean start without a real key;
+    # AI calls fail at runtime and documents end up FAILED (retryable), which is the intended behaviour for now
+    api-key: ${OPENAI_API_KEY:sk-placeholder}
+    chat:
+      options:
+        model: gpt-4o-mini
+  # Switching models = uncomment this block and comment out the openai block above.
+  # Both starters stay in pom.xml, but only one provider may define a ChatModel at runtime.
+  # deepseek:
+  #   api-key: ${DEEPSEEK_API_KEY:}
+  #   chat:
+  #     options:
+  #       model: deepseek-chat
