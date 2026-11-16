@@ -47,14 +47,14 @@ class QuickAddParserTest {
                 Arguments.of("Saturday laundry", "laundry", "2026-11-14", null),
                 Arguments.of("next Monday flight at 9am", "flight", "2026-11-16", "09:00"),
 
-                // ---- Chinese dates ----
-                Arguments.of("周五 18:00 和导师开会", "和导师开会", "2026-11-20", "18:00"),
-                Arguments.of("明天交作业", "交作业", "2026-11-15", null),
-                Arguments.of("后天取快递", "取快递", "2026-11-16", null),
-                Arguments.of("今天开会", "开会", "2026-11-14", null),
-                Arguments.of("下周三小组讨论", "小组讨论", "2026-11-18", null),
-                Arguments.of("星期一交房租", "交房租", "2026-11-16", null),
-                Arguments.of("周六和同学打球", "和同学打球", "2026-11-14", null),
+                // ---- more relative and weekday dates ----
+                Arguments.of("meet the tutor Friday 18:00", "meet the tutor", "2026-11-20", "18:00"),
+                Arguments.of("hand in the assignment tomorrow", "hand in the assignment", "2026-11-15", null),
+                Arguments.of("pick up the parcel the day after tomorrow", "pick up the parcel", "2026-11-16", null),
+                Arguments.of("meeting today", "meeting", "2026-11-14", null),
+                Arguments.of("group discussion next Wednesday", "group discussion", "2026-11-18", null),
+                Arguments.of("pay rent on Monday", "pay rent", "2026-11-16", null),
+                Arguments.of("football practice on Saturday", "football practice", "2026-11-14", null),
 
                 // ---- times ----
                 Arguments.of("call the bank at 15:30", "call the bank", null, "15:30"),

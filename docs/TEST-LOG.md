@@ -22,7 +22,7 @@ java tools/TestReportGenerator.java             # regenerate the PNG charts
 | Test cases | **142** |
 | Passed | **142 (100%)** |
 | Failed / errors / skipped | 0 / 0 / 0 |
-| Line coverage (JaCoCo) | **87.4%** (1,185 of 1,356 lines) |
+| Line coverage (JaCoCo) | **87.2%** (1,169 of 1,340 lines) |
 | Unit / Integration-system / Security / Malicious-intent cases | 81 / 30 / 18 / 13 |
 
 Charts: `docs/test-report/*.png`. Browsable reports: `target/site/jacoco/index.html`
