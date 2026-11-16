@@ -74,6 +74,12 @@ public class QuickAddParser {
         if (matchesAny(s, "the day after tomorrow")) return today.plusDays(2);
         if (matchesAny(s, "tomorrow")) return today.plusDays(1);
 
+        // Chinese relatives: 后天 before 明天 is not required (they do not
+        // contain each other), but today/tonight first keeps the order obvious
+        if (matchesAny(s, "今天", "今晚")) return today;
+        if (matchesAny(s, "后天")) return today.plusDays(2);
+        if (matchesAny(s, "明天")) return today.plusDays(1);
+
         // weekday names: the next such day, today included;
         // "next Monday" must be strictly in the future, so start from tomorrow
         Integer wd = weekdayFromText(s);
@@ -81,7 +87,24 @@ public class QuickAddParser {
             LocalDate base = matchesAny(s, "next") ? today.plusDays(1) : today;
             return base.with(TemporalAdjusters.nextOrSame(DayOfWeek.of(wd)));
         }
+
+        // Chinese weekdays 周一..周日 / 星期一..星期日; 下周三 is strictly future
+        Integer cWd = chineseWeekday(s);
+        if (cWd != null) {
+            LocalDate base = matchesAny(s, "下周") ? today.plusDays(1) : today;
+            return base.with(TemporalAdjusters.nextOrSame(DayOfWeek.of(cWd)));
+        }
         return null;
+    }
+
+    /** Maps 周一/星期日 etc. to DayOfWeek values (1 = Monday, 7 = Sunday). */
+    private static Integer chineseWeekday(String s) {
+        Matcher m = Pattern.compile("(?:周|星期)([一二三四五六日天])").matcher(s);
+        if (!m.find()) return null;
+        char c = m.group(1).charAt(0);
+        if (c == '日' || c == '天') return 7;
+        int day = "一二三四五六".indexOf(c) + 1;
+        return day > 0 ? day : null;
     }
 
     private static Integer weekdayFromText(String s) {
@@ -181,6 +204,10 @@ public class QuickAddParser {
         out = out.replaceAll(CONNECTOR + "\\b\\d{1,2}/\\d{1,2}(?:/\\d{4})?\\b", " ");
         out = out.replaceAll("(?i)" + CONNECTOR + "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\\.?\\s+\\d{1,2}(,?\\s*\\d{4})?", " ");
         out = out.replaceAll("(?i)" + CONNECTOR + "\\b(today|tonight|tomorrow|the day after tomorrow)\\b", " ");
+        out = out.replaceAll(CONNECTOR + "(?:今天|今晚|明天|后天)", " ");
+        // strip 下 first: the lookahead still sees the weekday it belongs to
+        out = out.replaceAll("下(?=(?:周|星期)[一二三四五六日天])", " ");
+        out = out.replaceAll(CONNECTOR + "(?:周|星期)[一二三四五六日天]", " ");
         out = out.replaceAll("(?i)\\bnext\\s+", " ");
         out = out.replaceAll("(?i)" + CONNECTOR + "\\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\\b", " ");
         return out;
