@@ -1,0 +1,16 @@
+# Active via @ActiveProfiles("test") on every Spring test.
+# Dummy credentials only - tests must never reach a real AWS account, a real
+# LLM provider or the real mail server.
+jwt:
+  secret-key: lifenote-test-secret-key-0123456789abcdef0123456789
+app:
+  scheduling:
+    enabled: false
+  s3:
+    access-key: test-access-key
+    secret-key: test-secret-key
+    bucket: test-bucket
+spring:
+  ai:
+    openai:
+      api-key: sk-test-placeholder

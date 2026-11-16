@@ -1,6 +1,7 @@
 package come.ying.lifenote.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -9,9 +10,12 @@ import org.springframework.stereotype.Component;
  * duplicate a reminder:
  * - deadlines: hourly, judged against each owner's local date
  * - evening digest: every minute, fires at the user's configured time
+ * Tests switch the timers off (app.scheduling.enabled=false) and call the
+ * service methods directly so runs stay deterministic.
  */
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "app.scheduling.enabled", havingValue = "true", matchIfMissing = true)
 public class ReminderScheduler {
 
     private final ReminderService reminderService;
