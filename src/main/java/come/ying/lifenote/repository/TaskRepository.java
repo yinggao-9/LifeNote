@@ -19,4 +19,10 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
             UUID userId, LocalDate from, LocalDate to, TaskStatus status);
 
     Optional<Task> findByIdAndUserId(UUID id, UUID userId);
+
+    /** Scheduler: tasks still open on one exact day, any owner (filtered per user later). */
+    List<Task> findByStatusAndDueDateBetween(TaskStatus status, LocalDate from, LocalDate to);
+
+    /** Scheduler: one user's open tasks for the evening digest. */
+    List<Task> findByUserIdAndDueDateAndStatus(UUID userId, LocalDate dueDate, TaskStatus status);
 }
