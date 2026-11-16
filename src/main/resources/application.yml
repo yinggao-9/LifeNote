@@ -4,10 +4,13 @@ spring:
   config:
     import: optional:file:local-secrets.yml
   autoconfigure:
-    # The DeepSeek starter always tries to build its ChatModel, even with no key configured,
-    # which aborts startup. Excluding it lets both AI starters live in the pom while only the
-    # OpenAI one is active. To switch models: remove this exclude and comment out openai below.
-    exclude: org.springframework.ai.model.deepseek.autoconfigure.DeepSeekChatAutoConfiguration
+    # DeepSeek's starter aborts startup when no api-key is configured, so its
+    # ChatClient is built by hand in AiConfig instead. The chat-client
+    # auto-config injects ChatModel by type and is ambiguous with two
+    # providers present - also excluded there.
+    exclude: >-
+      org.springframework.ai.model.deepseek.autoconfigure.DeepSeekChatAutoConfiguration,
+      org.springframework.ai.model.chat.client.autoconfigure.ChatClientAutoConfiguration
   datasource:
     url: jdbc:postgresql://localhost:5432/lifenote
     username: ${DB_USERNAME:postgres}
@@ -32,9 +35,6 @@ jwt:
   token-name: token
 
 app:
-  ai:
-    # name recorded in ai_runs.model; keep in sync with the active spring.ai provider
-    model: gpt-4o-mini
   s3:
     region: ${AWS_REGION:eu-north-1}
     access-key: ${AWS_ACCESS_KEY:}
@@ -49,10 +49,6 @@ spring.ai:
     chat:
       options:
         model: gpt-4o-mini
-  # Switching models = uncomment this block and comment out the openai block above.
-  # Both starters stay in pom.xml, but only one provider may define a ChatModel at runtime.
-  # deepseek:
-  #   api-key: ${DEEPSEEK_API_KEY:}
-  #   chat:
-  #     options:
-  #       model: deepseek-chat
+  # DeepSeek credentials and options live in local-secrets.yml under
+  # spring.ai.deepseek. When that key is absent the deepseek bean in AiConfig
+  # is skipped and the app runs on OpenAI alone.

@@ -10,7 +10,6 @@ import come.ying.lifenote.repository.PostponementRepository;
 import come.ying.lifenote.repository.SummaryLlmCacheRepository;
 import come.ying.lifenote.repository.TaskRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -31,16 +30,16 @@ public class SummaryService {
     private final TaskRepository taskRepository;
     private final PostponementRepository postponementRepository;
     private final SummaryLlmCacheRepository cacheRepository;
-    private final ChatClient chatClient;
+    private final LlmChatService llmChatService;
 
     public SummaryService(TaskRepository taskRepository,
                           PostponementRepository postponementRepository,
                           SummaryLlmCacheRepository cacheRepository,
-                          ChatClient chatClient) {
+                          LlmChatService llmChatService) {
         this.taskRepository = taskRepository;
         this.postponementRepository = postponementRepository;
         this.cacheRepository = cacheRepository;
-        this.chatClient = chatClient;
+        this.llmChatService = llmChatService;
     }
 
     public SummaryResponse summary(UUID userId, String month) {
@@ -155,17 +154,16 @@ public class SummaryService {
         }
 
         try {
-            String text = chatClient.prompt()
-                    .system("""
+            String text = llmChatService
+                    .chat(llmChatService.preferredModelFor(userId), """
                             You write the closing paragraph of a monthly task report.
                             Reply with 2-3 sentences of plain prose only: no lists, no markdown,
                             no heading. Every claim must come from the NUMBERS given - never
                             invent tasks, dates or events. Mention the completion rate and, when
                             there were postponements, what kept moving. Keep an encouraging but
-                            matter-of-fact tone.""")
-                    .user(input.toString())
-                    .call()
-                    .content();
+                            matter-of-fact tone.""",
+                          spec -> spec.user(input.toString()))
+                    .text();
             if (text == null || text.isBlank()) {
                 return null;
             }

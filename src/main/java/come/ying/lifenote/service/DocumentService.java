@@ -161,7 +161,9 @@ public class DocumentService {
                                                  String contentType) {
         long start = System.currentTimeMillis();
         try {
+            String preferred = aiExtractionService.preferredModelFor(userId);
             AiExtractionService.AiExtraction extraction = aiExtractionService.extract(
+                    preferred,
                     inputText,
                     doc.getDocType() == DocType.IMAGE ? imageBytes : null,
                     contentType);
@@ -169,7 +171,7 @@ public class DocumentService {
 
             // audit row: prompt version, model, raw output, duration
             UUID runId = aiRunService.recordSuccess(doc.getId(), userId,
-                    aiExtractionService.getModelName(), extraction.raw(), cost);
+                    extraction.model(), extraction.raw(), cost);
 
             // drafts (zero rows is a valid outcome: nothing to do in this material)
             candidateRepository.deleteByDocumentId(doc.getId());   // clear leftovers on retry
@@ -207,7 +209,7 @@ public class DocumentService {
             // call failed or reply was not valid JSON: audit, status and response all updated
             long cost = System.currentTimeMillis() - start;
             aiRunService.recordFailure(doc.getId(), userId,
-                    aiExtractionService.getModelName(), e, cost);
+                    aiExtractionService.preferredModelFor(userId), e, cost);
 
             doc.setStatus(DocumentStatus.FAILED);
             doc.setErrorMessage(e.getMessage());
